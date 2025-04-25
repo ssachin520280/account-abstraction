@@ -6,7 +6,9 @@ import {MinimalAccount} from "../src/MinimalAccount.sol";
 import {HelperConfig} from "./HelperConfig.s.sol";
 
 contract DeployMinimal is Script {
-    function run() public {}
+    function run() public returns (HelperConfig, MinimalAccount) {
+        return deployMinimalAccount();
+    }
 
     function deployMinimalAccount() public returns (HelperConfig, MinimalAccount) {
         console2.log("in deploy minimalAccount");

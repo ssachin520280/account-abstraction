@@ -18,6 +18,7 @@ contract HelperConfig is Script {
     address constant BURNER_WALLET = 0x80e71dB45e3F250E060bF991238fc633b52AF39a;
     // address constant FOUNDRY_DEFAULT_WALLET = 0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38;
     address constant ANVIL_DEFAULT_WALLET = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
+    address constant ENTRY_POINT_SEPOLIA = 0xe1c059111CbD5d19d02f6F9F1E4ea97241a335B6;
 
     NetworkConfig public localNetworkConfig;
     mapping(uint256 chainId => NetworkConfig) public networkConfigs;
@@ -41,11 +42,11 @@ contract HelperConfig is Script {
     }
 
     function getEthSepoliaConfig() public pure returns (NetworkConfig memory) {
-        return NetworkConfig({entryPoint: address(0), account: BURNER_WALLET}); // TODO: fill correct entryPoint adddress
+        return NetworkConfig({entryPoint: ENTRY_POINT_SEPOLIA, account: BURNER_WALLET});
     }
 
     function getZkSyncSepoliaConfig() public pure returns (NetworkConfig memory) {
-        return NetworkConfig({entryPoint: address(0), account: BURNER_WALLET}); // TODO: fill correct entryPoint adddress
+        return NetworkConfig({entryPoint: address(0), account: BURNER_WALLET});
     }
 
     function getOrCreateAnvilEthConfig() public returns (NetworkConfig memory) {

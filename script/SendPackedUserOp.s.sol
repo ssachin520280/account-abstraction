@@ -5,12 +5,31 @@ import {Script, console2} from "../lib/forge-std/src/Script.sol";
 import {PackedUserOperation} from  "../lib/account-abstraction/contracts/interfaces/PackedUserOperation.sol";
 import {HelperConfig} from "./HelperConfig.s.sol";
 import {IEntryPoint} from "../lib/account-abstraction/contracts/interfaces/IEntryPoint.sol";
+import {MinimalAccount} from "../src/MinimalAccount.sol";
 import {MessageHashUtils} from "../lib/openzeppelin-contracts/contracts/utils/cryptography/MessageHashUtils.sol";
+import {IERC20} from "../lib/openzeppelin-contracts/contracts/interfaces/IERC20.sol";
 
 contract SendPackedUserOp is Script {
     using MessageHashUtils for bytes32;
 
-    function run() public {}
+    address constant SEPOLIA_USDC = 0xf08A50178dfcDe18524640EA6618a1f965821715;
+    address constant MINIMAL_ACCOUNT = 0x6d980aaE2072fc158E8A235f8B93754320d35117;
+    address constant BURNER_WALLET = 0x80e71dB45e3F250E060bF991238fc633b52AF39a;
+
+    function run() public {
+        HelperConfig helperConfig = new HelperConfig();
+        address dest = SEPOLIA_USDC;
+        uint256 value = 0;
+        bytes memory functionData = abi.encodeWithSelector(IERC20.approve.selector, BURNER_WALLET, 1e18);
+        bytes memory executeCallData = abi.encodeWithSelector(MinimalAccount.execute.selector, dest, value, functionData);
+        PackedUserOperation memory userOp = generateSignedUserOperation(executeCallData, helperConfig.getConfig(), MINIMAL_ACCOUNT);
+        PackedUserOperation[] memory ops = new PackedUserOperation[](1);
+        ops[0] = userOp;
+
+        vm.startBroadcast(BURNER_WALLET);
+        IEntryPoint(helperConfig.getConfig().entryPoint).handleOps(ops, payable(helperConfig.getConfig().account));
+        vm.stopBroadcast();
+    }
 
     function generateSignedUserOperation(bytes memory callData, HelperConfig.NetworkConfig memory config, address minimalAccount) public returns (PackedUserOperation memory) {
         // 1. Generate the unsigned data
@@ -18,10 +37,13 @@ contract SendPackedUserOp is Script {
         console2.log(nonce);
 
         PackedUserOperation memory userOp = _generateUnsignedUserOperation(callData, minimalAccount, nonce);
+        console2.log("40");
 
         // 2. Get the userOp hash
         bytes32 userOpHash = IEntryPoint(config.entryPoint).getUserOpHash(userOp);
+        console2.log("44");
         bytes32 digest = userOpHash.toEthSignedMessageHash();
+        console2.log("46");
 
         // 3. Sign it, and return it
         uint8 v;
